@@ -12,8 +12,6 @@ export default function ResultsPage() {
   const router = useRouter();
   const [quiz, setQuiz] = useState<QuizPayload | null>(null);
   const [result, setResult] = useState<EvaluationResult | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
-  const [warning, setWarning] = useState("");
 
   useEffect(() => {
     const savedQuiz = sessionStorage.getItem("bookscore-quiz");
@@ -26,8 +24,6 @@ export default function ResultsPage() {
 
     setQuiz(JSON.parse(savedQuiz) as QuizPayload);
     setResult(JSON.parse(savedResult) as EvaluationResult);
-    setDemoMode(sessionStorage.getItem("bookscore-demo-mode") === "true");
-    setWarning(sessionStorage.getItem("bookscore-warning") || "");
   }, [router]);
 
   function retakeQuiz() {
@@ -65,12 +61,6 @@ export default function ResultsPage() {
           <p className="mt-3 leading-7 text-zinc-600 dark:text-zinc-300">{result.feedback}</p>
         </div>
       </section>
-
-      {demoMode ? (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          {warning || "Demo mode result: add a real OpenAI API key later to generate book-specific questions and feedback."}
-        </p>
-      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <ResultList title="Strengths" items={result.strengths} />

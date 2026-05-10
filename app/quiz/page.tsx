@@ -11,8 +11,6 @@ import type { QuizPayload, UserAnswer } from "@/lib/types";
 export default function QuizPage() {
   const router = useRouter();
   const [quiz, setQuiz] = useState<QuizPayload | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
-  const [warning, setWarning] = useState("");
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,8 +23,6 @@ export default function QuizPage() {
     }
 
     setQuiz(JSON.parse(savedQuiz) as QuizPayload);
-    setDemoMode(sessionStorage.getItem("bookscore-demo-mode") === "true");
-    setWarning(sessionStorage.getItem("bookscore-warning") || "");
   }, [router]);
 
   const completedCount = useMemo(() => Object.keys(selectedAnswers).length, [selectedAnswers]);
@@ -105,12 +101,6 @@ export default function QuizPage() {
           </div>
         </div>
       </div>
-
-      {demoMode ? (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          {warning || "Demo mode is active because no OpenAI API key is set. The quiz is a local sample so you can test the app flow."}
-        </p>
-      ) : null}
 
       <div className="grid gap-5">
         {quiz.questions.map((question, questionIndex) => (
