@@ -119,7 +119,6 @@ export default function QuizPage() {
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-sm font-bold text-rust dark:bg-zinc-950 dark:text-orange-300">{questionIndex + 1}</span>
               <div className="min-w-0 flex-1">
                 <p className="text-lg font-semibold leading-7">{question.question}</p>
-                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{question.concept}</p>
               </div>
             </div>
 
