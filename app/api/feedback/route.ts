@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Session, user, book, and a rating from 1 to 10 are required." }, { status: 400 });
     }
 
-    await sendSheetEvent({
+    const sheetResult = await sendSheetEvent({
       eventType: "feedback_submitted",
       sessionId: body.sessionId,
       userName: body.userName,
@@ -29,7 +29,11 @@ export async function POST(request: Request) {
       comment: body.comment?.trim() || ""
     });
 
-    return NextResponse.json({ ok: true });
+    if (!sheetResult.ok) {
+      return NextResponse.json({ error: "Feedback was received, but Google Sheets did not save it.", sheetResult }, { status: 502 });
+    }
+
+    return NextResponse.json({ ok: true, sheetResult });
   } catch (error) {
     console.error("Feedback submission failed:", error);
     return NextResponse.json({ error: "Failed to submit feedback." }, { status: 500 });

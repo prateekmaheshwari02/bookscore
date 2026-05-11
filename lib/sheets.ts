@@ -6,14 +6,16 @@ export async function sendSheetEvent(payload: SheetEventPayload) {
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
 
   if (!webhookUrl) {
-    return;
+    return { ok: false, configured: false, error: "GOOGLE_SHEETS_WEBHOOK_URL is not configured." };
   }
+
+  let timeout: ReturnType<typeof setTimeout> | undefined;
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3500);
+    timeout = setTimeout(() => controller.abort(), 7000);
 
-    await fetch(webhookUrl, {
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -23,8 +25,23 @@ export async function sendSheetEvent(payload: SheetEventPayload) {
       signal: controller.signal
     });
 
-    clearTimeout(timeout);
+    const text = await response.text();
+    return {
+      ok: response.ok,
+      configured: true,
+      status: response.status,
+      responseText: text.slice(0, 300)
+    };
   } catch (error) {
     console.error("Google Sheets event failed:", error);
+    return {
+      ok: false,
+      configured: true,
+      error: error instanceof Error ? error.message : "Unknown Google Sheets webhook error."
+    };
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
   }
 }
