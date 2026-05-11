@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     });
 
     if (!sheetResult.ok) {
-      return NextResponse.json({ error: "Feedback was received, but Google Sheets did not save it.", sheetResult }, { status: 502 });
+      console.error("Feedback webhook reported a non-OK response:", sheetResult);
     }
 
     return NextResponse.json({ ok: true, sheetResult });
