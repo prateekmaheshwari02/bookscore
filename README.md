@@ -58,6 +58,58 @@ BookScore works in Demo Mode without an API key, but the real product experience
 
 7. Restart the development server after changing `.env.local`.
 
+## Google Sheets Feedback Capture
+
+BookScore can send quiz sessions and feedback to Google Sheets through a Google Apps Script web app.
+
+1. Create a Google Sheet with a tab named `Responses`.
+2. Add this header row:
+
+   ```text
+   timestamp | eventType | sessionId | userName | bookName | score | rating | comment | mode
+   ```
+
+3. In the sheet, go to `Extensions -> Apps Script`.
+4. Paste this script:
+
+   ```js
+   const SHEET_NAME = "Responses";
+
+   function doPost(e) {
+     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+     const data = JSON.parse(e.postData.contents);
+
+     sheet.appendRow([
+       data.timestamp || new Date().toISOString(),
+       data.eventType || "",
+       data.sessionId || "",
+       data.userName || "",
+       data.bookName || "",
+       data.score ?? "",
+       data.rating ?? "",
+       data.comment || "",
+       data.mode || ""
+     ]);
+
+     return ContentService
+       .createTextOutput(JSON.stringify({ ok: true }))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   ```
+
+5. Click `Deploy -> New deployment`.
+6. Choose `Web app`.
+7. Set `Execute as` to `Me`.
+8. Set `Who has access` to `Anyone`.
+9. Deploy and copy the web app URL.
+10. Add the URL to `.env.local` locally and to Vercel environment variables:
+
+   ```bash
+   GOOGLE_SHEETS_WEBHOOK_URL=your_google_apps_script_web_app_url_here
+   ```
+
+The quiz still works if this URL is missing. It just skips saving analytics and feedback.
+
 ## API Key Safety
 
 - Never paste the API key into the browser UI.

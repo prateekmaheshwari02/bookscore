@@ -7,6 +7,7 @@ export type QuizQuestion = {
 };
 
 export type QuizPayload = {
+  sessionId: string;
   userName: string;
   bookName: string;
   questions: QuizQuestion[];

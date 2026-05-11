@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createDemoQuiz, hasUsableOpenAiKey } from "@/lib/demo";
 import { OPENAI_MODEL, openai, parseJsonResponse } from "@/lib/openai";
+import { sendSheetEvent } from "@/lib/sheets";
 import type { QuizQuestion } from "@/lib/types";
 
 type GenerateQuizBody = {
@@ -36,8 +37,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User name and book name are required." }, { status: 400 });
     }
 
+    const sessionId = crypto.randomUUID();
+
     if (!hasUsableOpenAiKey()) {
+      await sendSheetEvent({
+        eventType: "quiz_started",
+        sessionId,
+        userName,
+        bookName,
+        mode: "demo"
+      });
+
       return NextResponse.json({
+        sessionId,
         userName,
         bookName,
         questions: createDemoQuiz(bookName),
@@ -98,7 +110,16 @@ Rules:
       return NextResponse.json({ error: "OpenAI returned an invalid quiz format." }, { status: 502 });
     }
 
+    await sendSheetEvent({
+      eventType: "quiz_started",
+      sessionId,
+      userName,
+      bookName,
+      mode: "ai"
+    });
+
     return NextResponse.json({
+      sessionId,
       userName,
       bookName,
       questions: parsed.questions
@@ -106,7 +127,17 @@ Rules:
   } catch (error) {
     console.error("Quiz generation failed:", error);
     if (isOpenAiQuotaError(error)) {
+      const sessionId = crypto.randomUUID();
+      await sendSheetEvent({
+        eventType: "quiz_started",
+        sessionId,
+        userName: fallbackUserName,
+        bookName: fallbackBookName,
+        mode: "fallback"
+      });
+
       return NextResponse.json({
+        sessionId,
         userName: fallbackUserName,
         bookName: fallbackBookName,
         questions: createDemoQuiz(fallbackBookName),

@@ -12,6 +12,9 @@ export default function ResultsPage() {
   const router = useRouter();
   const [quiz, setQuiz] = useState<QuizPayload | null>(null);
   const [result, setResult] = useState<EvaluationResult | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   useEffect(() => {
     const savedQuiz = sessionStorage.getItem("bookscore-quiz");
@@ -33,6 +36,35 @@ export default function ResultsPage() {
     sessionStorage.removeItem("bookscore-warning");
     sessionStorage.removeItem("bookscore-demo-mode");
     router.push("/setup");
+  }
+
+  async function submitFeedback() {
+    if (!quiz || !result || !rating) return;
+
+    setFeedbackStatus("saving");
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: quiz.sessionId,
+          userName: quiz.userName,
+          bookName: quiz.bookName,
+          score: result.score,
+          rating,
+          comment
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Feedback request failed.");
+      }
+
+      setFeedbackStatus("saved");
+    } catch {
+      setFeedbackStatus("error");
+    }
   }
 
   if (!quiz || !result) {
@@ -71,6 +103,61 @@ export default function ResultsPage() {
         <ResultList title="Chapters or sections to re-read" items={result.chapterSuggestions ?? result.rereadSuggestions} />
         <ResultList title="Topics to revisit" items={result.rereadSuggestions} />
       </div>
+
+      <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Was this useful?</h2>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Rate the result from 1 to 10. A short suggestion is welcome.</p>
+          </div>
+          {feedbackStatus === "saved" ? (
+            <span className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">Thanks for the feedback.</span>
+          ) : null}
+        </div>
+
+        <div className="mt-5 grid grid-cols-5 gap-2 sm:grid-cols-10">
+          {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRating(value)}
+              className={`focus-ring min-h-10 rounded-lg border text-sm font-semibold transition ${
+                rating === value
+                  ? "border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-zinc-950"
+                  : "border-zinc-200 bg-paper text-zinc-700 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+              }`}
+              aria-pressed={rating === value}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+
+        <label className="mt-5 grid gap-2">
+          <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Suggestion or feedback</span>
+          <textarea
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="What felt useful, confusing, or missing?"
+            rows={4}
+            className="focus-ring resize-none rounded-lg border border-zinc-200 bg-white px-4 py-3 text-base outline-none transition dark:border-zinc-800 dark:bg-zinc-950"
+          />
+        </label>
+
+        {feedbackStatus === "error" ? (
+          <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-200">Feedback could not be saved. Please try once more.</p>
+        ) : null}
+
+        <PrimaryButton
+          type="button"
+          onClick={submitFeedback}
+          loading={feedbackStatus === "saving"}
+          disabled={!rating || feedbackStatus === "saved"}
+          className="mt-5 w-full sm:w-fit"
+        >
+          {feedbackStatus === "saved" ? "Feedback Sent" : "Submit Feedback"}
+        </PrimaryButton>
+      </section>
 
       <div className="flex flex-wrap gap-3">
         <PrimaryButton onClick={retakeQuiz}>
