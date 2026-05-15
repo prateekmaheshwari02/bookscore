@@ -1,10 +1,19 @@
 "use client";
 
+import { Check, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { StepFrame } from "@/components/StepFrame";
 import type { QuizPayload } from "@/lib/types";
+
+const loadingSteps = [
+  "Reading the book signal",
+  "Finding core ideas",
+  "Building plausible choices",
+  "Checking conceptual depth",
+  "Preparing your quiz"
+];
 
 export default function SetupPage() {
   const router = useRouter();
@@ -12,6 +21,25 @@ export default function SetupPage() {
   const [bookName, setBookName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!loading) {
+      setProgress(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setProgress((currentProgress) => {
+        if (currentProgress >= 94) return currentProgress;
+
+        const nextStep = currentProgress < 55 ? 7 : currentProgress < 78 ? 4 : 2;
+        return Math.min(currentProgress + nextStep, 94);
+      });
+    }, 650);
+
+    return () => window.clearInterval(interval);
+  }, [loading]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,7 +104,62 @@ export default function SetupPage() {
         <PrimaryButton type="submit" loading={loading} className="w-full sm:w-fit">
           {loading ? "Generating Quiz" : "Generate Quiz"}
         </PrimaryButton>
+
+        {loading ? <QuizGenerationProgress progress={progress} bookName={bookName} /> : null}
       </form>
     </StepFrame>
+  );
+}
+
+function QuizGenerationProgress({ progress, bookName }: { progress: number; bookName: string }) {
+  const activeStep = Math.min(Math.floor(progress / 20), loadingSteps.length - 1);
+
+  return (
+    <div className="grid gap-4 pt-1" role="status" aria-live="polite">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-rust/10 text-rust dark:bg-orange-300/10 dark:text-orange-300">
+            <Sparkles size={18} />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">{loadingSteps[activeStep]}</p>
+            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{bookName ? `Crafting questions for ${bookName}` : "Crafting your quiz"}</p>
+          </div>
+        </div>
+        <span className="text-sm font-semibold text-sage dark:text-orange-300">{progress}%</span>
+      </div>
+
+      <div className="h-3 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+        <div
+          className="h-full rounded-lg bg-sage transition-all duration-700 ease-out dark:bg-orange-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-5">
+        {loadingSteps.map((step, index) => {
+          const complete = index < activeStep;
+          const active = index === activeStep;
+
+          return (
+            <div
+              key={step}
+              className={`flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${
+                complete
+                  ? "bg-sage/10 text-sage dark:bg-orange-300/10 dark:text-orange-300"
+                  : active
+                    ? "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
+                    : "bg-transparent text-zinc-400 dark:text-zinc-500"
+              }`}
+            >
+              <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${complete ? "bg-sage text-white dark:bg-orange-300 dark:text-zinc-950" : "border border-current"}`}>
+                {complete ? <Check size={13} /> : index + 1}
+              </span>
+              <span>{step}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
