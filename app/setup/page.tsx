@@ -44,6 +44,7 @@ export default function SetupPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setProgress(8);
     setLoading(true);
 
     try {
@@ -101,11 +102,11 @@ export default function SetupPage() {
 
         {error ? <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-200">{error}</p> : null}
 
-        <PrimaryButton type="submit" loading={loading} className="w-full sm:w-fit">
-          {loading ? "Generating Quiz" : "Generate Quiz"}
-        </PrimaryButton>
-
         {loading ? <QuizGenerationProgress progress={progress} bookName={bookName} /> : null}
+
+        <PrimaryButton type="submit" loading={loading} className="w-full sm:w-fit">
+          {loading ? "Working on your quiz" : "Generate Quiz"}
+        </PrimaryButton>
       </form>
     </StepFrame>
   );
@@ -115,11 +116,11 @@ function QuizGenerationProgress({ progress, bookName }: { progress: number; book
   const activeStep = Math.min(Math.floor(progress / 20), loadingSteps.length - 1);
 
   return (
-    <div className="grid gap-4 pt-1" role="status" aria-live="polite">
+    <div className="grid gap-4 rounded-lg border border-sage/20 bg-sage/5 p-4 dark:border-orange-300/20 dark:bg-orange-300/5" role="status" aria-live="polite">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-rust/10 text-rust dark:bg-orange-300/10 dark:text-orange-300">
-            <Sparkles size={18} />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-rust/10 text-rust dark:bg-orange-300/10 dark:text-orange-300">
+            <Sparkles size={19} className="animate-pulse" />
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">{loadingSteps[activeStep]}</p>
@@ -136,7 +137,7 @@ function QuizGenerationProgress({ progress, bookName }: { progress: number; book
         />
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-5">
+      <div className="grid gap-2">
         {loadingSteps.map((step, index) => {
           const complete = index < activeStep;
           const active = index === activeStep;
