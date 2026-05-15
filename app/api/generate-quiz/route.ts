@@ -110,6 +110,8 @@ Rules:
 - Avoid repetition.
 - Questions should feel like they were created by someone who deeply understands the book.
 - Each question must test what the author is arguing, advising, implying, complicating, or warning against.
+- Do not repeatedly mention the author's name. Use the author's name in at most 2 questions.
+- Prefer natural phrasing such as "the book's argument," "the central claim," "this framework," "the author would most likely argue," or "which interpretation best fits the book?"
 - Ensure correctAnswer exactly matches one option string.`
         }
       ]
