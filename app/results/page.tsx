@@ -104,6 +104,8 @@ export default function ResultsPage() {
         <ResultList title="Topics to revisit" items={result.rereadSuggestions} />
       </div>
 
+      <AnswerReviewList reviews={result.answerReviews ?? []} />
+
       <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -173,6 +175,45 @@ export default function ResultsPage() {
         </Link>
       </div>
     </StepFrame>
+  );
+}
+
+function AnswerReviewList({ reviews }: { reviews: EvaluationResult["answerReviews"] }) {
+  const wrongReviews = reviews.filter((review) => !review.isCorrect);
+
+  if (!wrongReviews.length) {
+    return (
+      <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 className="text-lg font-semibold">Answer review</h2>
+        <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+          You did not miss any questions. Nice work.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+      <h2 className="text-lg font-semibold">Review your missed answers</h2>
+      <div className="mt-4 grid gap-4">
+        {wrongReviews.map((review, index) => (
+          <article key={`${review.question}-${index}`} className="rounded-lg bg-paper p-4 dark:bg-zinc-950">
+            <p className="font-semibold leading-7 text-zinc-900 dark:text-zinc-100">{review.question}</p>
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-950 dark:bg-red-950/30">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-600 dark:text-red-300">Your answer</p>
+                <p className="mt-1 leading-6 text-red-900 dark:text-red-100">{review.selectedAnswer}</p>
+              </div>
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-950 dark:bg-emerald-950/30">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">Correct answer</p>
+                <p className="mt-1 leading-6 text-emerald-900 dark:text-emerald-100">{review.correctAnswer}</p>
+              </div>
+              <p className="rounded-lg bg-white px-4 py-3 text-sm leading-6 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">{review.explanation}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 

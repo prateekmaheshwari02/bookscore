@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createDemoEvaluation, hasUsableOpenAiKey } from "@/lib/demo";
 import { OPENAI_MODEL, openai, parseJsonResponse } from "@/lib/openai";
-import type { EvaluationResult, UserAnswer } from "@/lib/types";
+import type { AnswerReview, EvaluationResult, UserAnswer } from "@/lib/types";
 
 type EvaluateBody = {
   userName?: string;
@@ -22,7 +22,8 @@ function validateResult(result: EvaluationResult) {
     Array.isArray(result.weakConcepts) &&
     typeof result.feedback === "string" &&
     Array.isArray(result.rereadSuggestions) &&
-    Array.isArray(result.chapterSuggestions)
+    Array.isArray(result.chapterSuggestions) &&
+    Array.isArray(result.answerReviews)
   );
 }
 
@@ -49,6 +50,65 @@ function normalizeStringList(items: unknown): string[] {
 
     return String(item);
   });
+}
+
+function normalizeAnswerReviews(items: unknown, answers: UserAnswer[]): AnswerReview[] {
+  if (!Array.isArray(items)) {
+    return buildFallbackAnswerReviews(answers);
+  }
+
+  const reviews = items.map((item, index) => {
+    const answer = answers[index];
+
+    if (!item || typeof item !== "object") {
+      return buildFallbackAnswerReview(answer);
+    }
+
+    const record = item as Record<string, unknown>;
+    const question = typeof record.question === "string" ? record.question : answer?.question || "";
+    const selectedAnswer = typeof record.selectedAnswer === "string" ? record.selectedAnswer : answer?.selectedAnswer || "";
+    const correctAnswer = typeof record.correctAnswer === "string" ? record.correctAnswer : answer?.correctAnswer || "";
+    const isCorrect = typeof record.isCorrect === "boolean" ? record.isCorrect : selectedAnswer === correctAnswer;
+    const explanation = typeof record.explanation === "string" ? record.explanation : buildFallbackAnswerReview(answer).explanation;
+
+    return {
+      question,
+      selectedAnswer,
+      correctAnswer,
+      isCorrect,
+      explanation
+    };
+  });
+
+  return reviews.length ? reviews : buildFallbackAnswerReviews(answers);
+}
+
+function buildFallbackAnswerReviews(answers: UserAnswer[]) {
+  return answers.map(buildFallbackAnswerReview);
+}
+
+function buildFallbackAnswerReview(answer?: UserAnswer): AnswerReview {
+  if (!answer) {
+    return {
+      question: "",
+      selectedAnswer: "",
+      correctAnswer: "",
+      isCorrect: false,
+      explanation: "Review unavailable for this answer."
+    };
+  }
+
+  const isCorrect = answer.selectedAnswer === answer.correctAnswer;
+
+  return {
+    question: answer.question,
+    selectedAnswer: answer.selectedAnswer,
+    correctAnswer: answer.correctAnswer,
+    isCorrect,
+    explanation: isCorrect
+      ? "Correct. Your answer matches the author's conceptual point."
+      : `This answer misses the concept of ${answer.concept}. The correct answer better reflects the author's argument or advice.`
+  };
 }
 
 export async function POST(request: Request) {
@@ -103,10 +163,24 @@ Return JSON with this exact shape:
   "weakConcepts": ["Specific concepts the user struggled with"],
   "feedback": "Personalized explanation of what the user misunderstood and how to improve.",
   "rereadSuggestions": ["Specific topics or ideas to revisit"],
-  "chapterSuggestions": ["Chapter or section reread recommendations, each with a short reason"]
+  "chapterSuggestions": ["Chapter or section reread recommendations, each with a short reason"],
+  "answerReviews": [
+    {
+      "question": "Original question text",
+      "selectedAnswer": "The user's selected answer",
+      "correctAnswer": "The correct answer",
+      "isCorrect": false,
+      "explanation": "Explain why the selected answer is wrong and why the correct answer is right. If the user's answer is correct, explain briefly why it is right."
+    }
+  ]
 }
 
 Focus on conceptual gaps, not trivia. Explain wrong answers in plain language.
+Return one answerReviews item for every answer, in the same order as the answers array.
+For each wrong answer, clearly state:
+- why the selected answer is wrong
+- what the correct answer is
+- why the correct answer better reflects the author's point of view
 
 For chapterSuggestions:
 - Use chapterHint values from the answers when they are helpful.
@@ -130,7 +204,8 @@ For chapterSuggestions:
       strengths: normalizeStringList(parsed.strengths),
       weakConcepts: normalizeStringList(parsed.weakConcepts),
       rereadSuggestions: normalizeStringList(parsed.rereadSuggestions),
-      chapterSuggestions: normalizeStringList(parsed.chapterSuggestions)
+      chapterSuggestions: normalizeStringList(parsed.chapterSuggestions),
+      answerReviews: normalizeAnswerReviews(parsed.answerReviews, answers)
     };
 
     if (!validateResult(result)) {

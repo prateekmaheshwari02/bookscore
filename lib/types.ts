@@ -29,4 +29,13 @@ export type EvaluationResult = {
   feedback: string;
   rereadSuggestions: string[];
   chapterSuggestions: string[];
+  answerReviews: AnswerReview[];
+};
+
+export type AnswerReview = {
+  question: string;
+  selectedAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  explanation: string;
 };

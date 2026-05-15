@@ -380,8 +380,22 @@ export function createDemoEvaluation(bookName: string, answers: UserAnswer[]): E
       "Review sections connected to the weak concepts listed above.",
       "After each chapter, write one real-life example of how the idea could be used."
     ],
-    chapterSuggestions
+    chapterSuggestions,
+    answerReviews: buildDemoAnswerReviews(answers)
   };
+}
+
+function buildDemoAnswerReviews(answers: UserAnswer[]) {
+  return answers.map((answer) => ({
+    question: answer.question,
+    selectedAnswer: answer.selectedAnswer,
+    correctAnswer: answer.correctAnswer,
+    isCorrect: answer.selectedAnswer === answer.correctAnswer,
+    explanation:
+      answer.selectedAnswer === answer.correctAnswer
+        ? "Correct. Your answer matches the author's conceptual point."
+        : `Your choice points away from the main concept being tested: ${answer.concept}. The correct answer is better because it captures the author's argument or advice more directly.`
+  }));
 }
 
 function buildDemoChapterSuggestions(bookName: string, missed: UserAnswer[]) {
