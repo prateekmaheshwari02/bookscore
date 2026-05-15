@@ -65,17 +65,34 @@ export async function POST(request: Request) {
         {
           role: "system",
           content:
-            "You create rigorous non-fiction reading comprehension quizzes. Test the reader's grasp of the author's advice, point of view, arguments, mental models, and conceptual applications. Avoid trivia, publication facts, author biography, and obscure details."
+            "You are BookScore, an AI designed to measure how deeply a person has understood a non-fiction book, not merely whether they have read it. Create intellectually sharp MCQs that differentiate surface readers from true absorbers of the material."
         },
         {
           role: "user",
-          content: `Create a 10-question multiple-choice quiz for the book "${bookName}".
+          content: `The user is ${userName}. The non-fiction book is "${bookName}".
+
+Generate exactly 10 highly intelligent multiple-choice questions based on the core ideas, arguments, frameworks, mental models, and nuances of that book.
+
+The questions should:
+- Test depth of understanding, not trivial facts
+- Focus on concepts, reasoning, implications, examples, contradictions, and applications
+- Avoid page numbers, dates, chapter counts, publication details, or obscure names unless absolutely central
+- Include some questions that require connecting multiple ideas from the book
+- Include a few scenario-based questions where the user must apply the book's ideas in real-life situations
+- Be challenging even for someone who has read the book casually
+- Differentiate between surface readers and true absorbers of the material
+
+Question distribution:
+- 4 conceptual understanding questions
+- 3 application/situation-based questions
+- 2 nuanced or counterintuitive insight questions
+- 1 core thesis question
 
 Return JSON with this exact shape:
 {
   "questions": [
     {
-      "question": "A conceptual question framed around the author's advice or point of view",
+      "question": "Question text only. Do not include the answer.",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": "The exact matching correct option",
       "concept": "The concept being tested",
@@ -85,15 +102,14 @@ Return JSON with this exact shape:
 }
 
 Rules:
-- Make questions moderately difficult.
-- Require understanding and application, not memorized facts.
-- Prefer question frames like:
-  - "Which of the following best represents the author's point of view on ...?"
-  - "Which action would the author most likely advise in this situation?"
-  - "Which interpretation would the author disagree with most strongly?"
-  - "Which example best applies the author's argument about ...?"
-- Each question must test what the author is arguing, advising, or warning against.
-- Make every option plausible.
+- Each question must have exactly 4 options.
+- Only 1 option should be clearly correct.
+- Wrong options should be plausible, not silly.
+- Do not reveal correct answers in the question text or option labels.
+- Keep the tone intellectually sharp and serious.
+- Avoid repetition.
+- Questions should feel like they were created by someone who deeply understands the book.
+- Each question must test what the author is arguing, advising, implying, complicating, or warning against.
 - Ensure correctAnswer exactly matches one option string.`
         }
       ]
