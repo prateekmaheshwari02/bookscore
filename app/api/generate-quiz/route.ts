@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         {
           role: "system",
           content:
-            "You are BookScore, an AI designed to measure how deeply a person has understood a non-fiction book, not merely whether they have read it. Create intellectually sharp MCQs that differentiate surface readers from true absorbers of the material."
+            "You are BookScore, an AI designed to measure how well a person has understood a non-fiction book, not merely whether they have read it. Create clear, thoughtful MCQs that are engaging, moderately challenging, and occasionally lightly witty without becoming silly."
         },
         {
           role: "user",
@@ -79,8 +79,10 @@ The questions should:
 - Avoid page numbers, dates, chapter counts, publication details, or obscure names unless absolutely central
 - Include some questions that require connecting multiple ideas from the book
 - Include a few scenario-based questions where the user must apply the book's ideas in real-life situations
-- Be challenging even for someone who has read the book casually
-- Differentiate between surface readers and true absorbers of the material
+- Be understandable to a thoughtful general reader
+- Be moderately difficult, not academic or painfully complex
+- Differentiate between surface readers and careful readers without making the user feel punished
+- Add a little fun or gentle humor where natural, especially in scenarios or wrong options, but never make the correct answer obvious
 
 Question distribution:
 - 4 conceptual understanding questions
@@ -106,9 +108,11 @@ Rules:
 - Only 1 option should be clearly correct.
 - Wrong options should be plausible, not silly.
 - Do not reveal correct answers in the question text or option labels.
-- Keep the tone intellectually sharp and serious.
+- Keep the tone smart, friendly, and lightly playful.
+- Use plain English and avoid dense abstract wording.
+- Avoid long, tangled questions. If a question is scenario-based, keep the scenario short.
 - Avoid repetition.
-- Questions should feel like they were created by someone who deeply understands the book.
+- Questions should feel like they were created by someone who understands the book and respects the reader's time.
 - Each question must test what the author is arguing, advising, implying, complicating, or warning against.
 - Do not repeatedly mention the author's name. Use the author's name in at most 2 questions.
 - Prefer natural phrasing such as "the book's argument," "the central claim," "this framework," "the author would most likely argue," or "which interpretation best fits the book?"
