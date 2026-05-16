@@ -17,6 +17,30 @@ export function AppShell({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("dark", shouldUseDark);
   }, []);
 
+  useEffect(() => {
+    const trackedKey = "bookscore-visitor-tracked";
+    const visitorKey = "bookscore-visitor-id";
+
+    if (window.localStorage.getItem(trackedKey)) {
+      return;
+    }
+
+    const visitorId = window.localStorage.getItem(visitorKey) || crypto.randomUUID();
+    window.localStorage.setItem(visitorKey, visitorId);
+
+    fetch("/api/track-visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        visitorId,
+        path: window.location.pathname
+      }),
+      keepalive: true
+    })
+      .then(() => window.localStorage.setItem(trackedKey, "true"))
+      .catch(() => undefined);
+  }, []);
+
   function toggleDarkMode() {
     const nextMode = !darkMode;
     setDarkMode(nextMode);

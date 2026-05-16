@@ -110,6 +110,18 @@ BookScore can send quiz sessions and feedback to Google Sheets through a Google 
 
 The quiz still works if this URL is missing. It just skips saving analytics and feedback.
 
+### Private Unique Visitor Count
+
+BookScore records one private `visitor_seen` row per browser in the same sheet. The visitor ID is stored in the `sessionId` column, and no visitor count is shown in the public app.
+
+To count unique visitors in Google Sheets, add this formula in a private cell outside the response table:
+
+```text
+=COUNTUNIQUE(FILTER(C2:C, B2:B="visitor_seen"))
+```
+
+If a user clears browser data or uses another device, they may count as a new visitor.
+
 ## API Key Safety
 
 - Never paste the API key into the browser UI.

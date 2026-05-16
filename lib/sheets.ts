@@ -1,5 +1,5 @@
 type SheetEventPayload = Record<string, unknown> & {
-  eventType: "quiz_started" | "feedback_submitted";
+  eventType: "quiz_started" | "feedback_submitted" | "visitor_seen";
 };
 
 export async function sendSheetEvent(payload: SheetEventPayload) {
