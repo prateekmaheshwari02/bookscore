@@ -24,6 +24,14 @@ export default function SetupPage() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    const bookFromHero = new URLSearchParams(window.location.search).get("book");
+
+    if (bookFromHero) {
+      setBookName(bookFromHero);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!loading) {
       setProgress(0);
       return;
