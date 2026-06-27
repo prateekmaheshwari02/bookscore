@@ -102,20 +102,6 @@ export default function HomePage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rust dark:text-orange-300">BookScore</p>
           <h1 className="mt-4 text-5xl font-semibold tracking-normal text-ink dark:text-white sm:text-7xl">Read more books. Retain them better.</h1>
           <form onSubmit={startQuiz} className="mt-8 grid max-w-2xl gap-4">
-            <label className="grid gap-2">
-              <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Your name</span>
-              <input
-                value={userName}
-                onChange={(event) => {
-                  setUserName(event.target.value);
-                  setError("");
-                }}
-                placeholder="Enter your name..."
-                disabled={loading}
-                className="focus-ring min-h-12 rounded-lg border border-zinc-200 bg-white px-4 text-base shadow-sm outline-none transition placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
-              />
-            </label>
-
             <label className="grid gap-3">
               <span className="text-2xl font-semibold tracking-normal text-ink dark:text-white sm:text-3xl">What&apos;s the last book you finished?</span>
               <input
@@ -127,6 +113,20 @@ export default function HomePage() {
                 placeholder="Enter book title..."
                 disabled={loading}
                 className="focus-ring min-h-16 rounded-lg border border-zinc-200 bg-white px-5 text-lg shadow-soft outline-none transition placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:placeholder:text-zinc-500 sm:text-xl"
+              />
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Your name</span>
+              <input
+                value={userName}
+                onChange={(event) => {
+                  setUserName(event.target.value);
+                  setError("");
+                }}
+                placeholder="Enter your name..."
+                disabled={loading}
+                className="focus-ring min-h-12 rounded-lg border border-zinc-200 bg-white px-4 text-base shadow-sm outline-none transition placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
               />
             </label>
 
