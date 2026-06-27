@@ -24,6 +24,7 @@ const loadingSteps = [
 
 export default function HomePage() {
   const router = useRouter();
+  const [userName, setUserName] = useState("");
   const [bookTitle, setBookTitle] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,7 +51,13 @@ export default function HomePage() {
   async function startQuiz(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const trimmedName = userName.trim();
     const trimmedTitle = bookTitle.trim();
+    if (!trimmedName) {
+      setError("Enter your name to begin.");
+      return;
+    }
+
     if (!trimmedTitle) {
       setError("Enter a book title to begin.");
       return;
@@ -63,7 +70,7 @@ export default function HomePage() {
       const response = await fetch("/api/generate-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName: "Reader", bookName: trimmedTitle })
+        body: JSON.stringify({ userName: trimmedName, bookName: trimmedTitle })
       });
 
       const payload = await response.json();
@@ -95,6 +102,20 @@ export default function HomePage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rust dark:text-orange-300">BookScore</p>
           <h1 className="mt-4 text-5xl font-semibold tracking-normal text-ink dark:text-white sm:text-7xl">Read more books. Retain them better.</h1>
           <form onSubmit={startQuiz} className="mt-8 grid max-w-2xl gap-4">
+            <label className="grid gap-2">
+              <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Your name</span>
+              <input
+                value={userName}
+                onChange={(event) => {
+                  setUserName(event.target.value);
+                  setError("");
+                }}
+                placeholder="Enter your name..."
+                disabled={loading}
+                className="focus-ring min-h-12 rounded-lg border border-zinc-200 bg-white px-4 text-base shadow-sm outline-none transition placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
+              />
+            </label>
+
             <label className="grid gap-3">
               <span className="text-2xl font-semibold tracking-normal text-ink dark:text-white sm:text-3xl">What&apos;s the last book you finished?</span>
               <input
