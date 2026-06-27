@@ -21,7 +21,7 @@ export default function ResultsPage() {
     const savedResult = sessionStorage.getItem("bookscore-result");
 
     if (!savedQuiz || !savedResult) {
-      router.replace("/setup");
+      router.replace("/");
       return;
     }
 
@@ -35,7 +35,7 @@ export default function ResultsPage() {
     sessionStorage.removeItem("bookscore-result");
     sessionStorage.removeItem("bookscore-warning");
     sessionStorage.removeItem("bookscore-demo-mode");
-    router.push("/setup");
+    router.push("/");
   }
 
   async function submitFeedback() {

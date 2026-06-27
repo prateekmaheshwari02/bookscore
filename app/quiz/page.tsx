@@ -18,7 +18,7 @@ export default function QuizPage() {
   useEffect(() => {
     const savedQuiz = sessionStorage.getItem("bookscore-quiz");
     if (!savedQuiz) {
-      router.replace("/setup");
+      router.replace("/");
       return;
     }
 
@@ -87,7 +87,7 @@ export default function QuizPage() {
     <StepFrame eyebrow={`${quiz.bookName} quiz`} title={`Answer thoughtfully, ${quiz.userName}.`}>
       <div className="sticky top-0 z-10 -mx-5 border-y border-zinc-200 bg-paper/90 px-5 py-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90 sm:-mx-8 sm:px-8">
         <div className="mx-auto flex max-w-4xl items-center gap-4">
-          <Link href="/setup" className="focus-ring grid h-10 w-10 place-items-center rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900" aria-label="Back to setup">
+          <Link href="/" className="focus-ring grid h-10 w-10 place-items-center rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900" aria-label="Back to home">
             <ArrowLeft size={18} />
           </Link>
           <div className="flex-1">
