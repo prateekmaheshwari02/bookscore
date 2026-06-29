@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createDemoQuiz, hasUsableOpenAiKey } from "@/lib/demo";
+import { getBookValidationMessage, validateBookInput, validationPasses } from "@/lib/bookValidation";
 import { OPENAI_MODEL, openai, parseJsonResponse } from "@/lib/openai";
 import { sendSheetEvent } from "@/lib/sheets";
 import type { QuizQuestion } from "@/lib/types";
@@ -37,6 +38,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User name and book name are required." }, { status: 400 });
     }
 
+    const validation = await validateBookInput(bookName);
+    if (!validationPasses(validation)) {
+      return NextResponse.json(
+        {
+          error: getBookValidationMessage(validation),
+          examples: ["Atomic Habits", "Sapiens", "Thinking, Fast and Slow"],
+          validation
+        },
+        { status: 422 }
+      );
+    }
+
+    const canonicalBookName = validation.title;
+    fallbackBookName = canonicalBookName;
     const sessionId = crypto.randomUUID();
 
     if (!hasUsableOpenAiKey()) {
@@ -44,15 +59,15 @@ export async function POST(request: Request) {
         eventType: "quiz_started",
         sessionId,
         userName,
-        bookName,
+        bookName: canonicalBookName,
         mode: "demo"
       });
 
       return NextResponse.json({
         sessionId,
         userName,
-        bookName,
-        questions: createDemoQuiz(bookName),
+        bookName: canonicalBookName,
+        questions: createDemoQuiz(canonicalBookName),
         demoMode: true
       });
     }
@@ -69,7 +84,7 @@ export async function POST(request: Request) {
         },
         {
           role: "user",
-          content: `The user is ${userName}. The non-fiction book is "${bookName}".
+          content: `The user is ${userName}. The non-fiction book is "${canonicalBookName}" by ${validation.author}.
 
 Generate exactly 10 highly intelligent multiple-choice questions based on the core ideas, arguments, frameworks, mental models, and nuances of that book.
 
@@ -136,14 +151,14 @@ Rules:
       eventType: "quiz_started",
       sessionId,
       userName,
-      bookName,
+      bookName: canonicalBookName,
       mode: "ai"
     });
 
     return NextResponse.json({
       sessionId,
       userName,
-      bookName,
+      bookName: canonicalBookName,
       questions: parsed.questions
     });
   } catch (error) {

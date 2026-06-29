@@ -15,18 +15,24 @@ const signals = [
 const trustSignals = ["5 minutes", "Personalized for your book", "No sign-up", "Instant score"];
 
 const loadingSteps = [
-  "Reading the book signal",
+  "Checking your book...",
   "Finding core ideas",
   "Building plausible choices",
   "Checking conceptual depth",
   "Preparing your quiz"
 ];
 
+type GenerateQuizError = {
+  error?: string;
+  examples?: string[];
+};
+
 export default function HomePage() {
   const router = useRouter();
   const [userName, setUserName] = useState("");
   const [bookTitle, setBookTitle] = useState("");
   const [error, setError] = useState("");
+  const [examples, setExamples] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -53,6 +59,8 @@ export default function HomePage() {
 
     const trimmedName = userName.trim();
     const trimmedTitle = bookTitle.trim();
+    setExamples([]);
+
     if (!trimmedName) {
       setError("Enter your name to begin.");
       return;
@@ -75,7 +83,9 @@ export default function HomePage() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Could not generate the quiz.");
+        const errorPayload = payload as GenerateQuizError;
+        setExamples(errorPayload.examples || []);
+        throw new Error(errorPayload.error || "Could not generate the quiz.");
       }
 
       sessionStorage.setItem("bookscore-quiz", JSON.stringify(payload as QuizPayload));
@@ -109,6 +119,7 @@ export default function HomePage() {
                 onChange={(event) => {
                   setBookTitle(event.target.value);
                   setError("");
+                  setExamples([]);
                 }}
                 placeholder="Enter book title..."
                 disabled={loading}
@@ -123,6 +134,7 @@ export default function HomePage() {
                 onChange={(event) => {
                   setUserName(event.target.value);
                   setError("");
+                  setExamples([]);
                 }}
                 placeholder="Enter your name..."
                 disabled={loading}
@@ -130,7 +142,12 @@ export default function HomePage() {
               />
             </label>
 
-            {error ? <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-200">{error}</p> : null}
+            {error ? (
+              <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-200">
+                <p>{error}</p>
+                {examples.length ? <p className="mt-2">Try: {examples.join(", ")}</p> : null}
+              </div>
+            ) : null}
 
             {loading ? <QuizGenerationProgress progress={progress} bookName={bookTitle} /> : null}
 
@@ -140,7 +157,7 @@ export default function HomePage() {
                 disabled={loading}
                 className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-ink px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
               >
-                {loading ? "Working on your quiz" : "Test My Retention"}
+                {loading ? (progress < 20 ? "Checking your book..." : "Working on your quiz") : "Test My Retention"}
                 <ArrowRight size={18} />
               </button>
               <div className="grid gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 sm:grid-cols-2">
